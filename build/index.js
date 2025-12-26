@@ -1,113 +1,91 @@
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
+import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
+import React, { useId, useRef, useMemo, useCallback } from "react";
+const Slider = ({ children: rawChildren, width = "200px", duration = 40, toRight = false, pauseOnHover = false, blurBorders = false, blurBorderColor = "#fff", }) => {
+    const uniqueId = useId();
+    const sliderRef = useRef(null);
+    // Normalize children to always be an array
+    const children = useMemo(() => React.Children.toArray(rawChildren), [rawChildren]);
+    // Sanitize ID for CSS keyframe name (useId returns colons which aren't valid)
+    const animationName = useMemo(() => `slider-animation-${uniqueId.replace(/:/g, "")}`, [uniqueId]);
+    // Calculate total width for the animation
+    const childCount = children.length;
+    const totalWidth = useMemo(() => `calc(${width} * ${childCount})`, [width, childCount]);
+    // For toRight: start offset left (negative) and animate to 0
+    // For toLeft: start at 0 and animate to negative
+    const keyframes = useMemo(() => {
+        if (toRight) {
+            return `
+        @keyframes ${animationName} {
+          0% { transform: translateX(-${totalWidth}); }
+          100% { transform: translateX(0); }
         }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
+      `;
         }
-    return t;
-};
-import React, { useEffect, useState } from "react";
-var Slider = function (_a) {
-    var children = _a.children, _b = _a.width, width = _b === void 0 ? "200px" : _b, _c = _a.duration, duration = _c === void 0 ? 40 : _c, _d = _a.toRight, toRight = _d === void 0 ? false : _d, _e = _a.pauseOnHover, pauseOnHover = _e === void 0 ? false : _e, _f = _a.blurBorders, blurBorders = _f === void 0 ? false : _f, _g = _a.blurBorderColor, blurBorderColor = _g === void 0 ? "#fff" : _g;
-    var _h = useState(""), idNanoid = _h[0], setIdNanoid = _h[1];
-    // Generate a random string ID for keyframes
-    var generarCadenaAleatoria = function () {
-        var cadena = "";
-        var caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        for (var i = 0; i < 10; i++) {
-            cadena += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        return `
+      @keyframes ${animationName} {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-${totalWidth}); }
+      }
+    `;
+    }, [animationName, totalWidth, toRight]);
+    // Pause/resume handlers using ref
+    const handleMouseEnter = useCallback(() => {
+        if (sliderRef.current) {
+            sliderRef.current.style.animationPlayState = "paused";
         }
-        return cadena;
-    };
-    useEffect(function () {
-        setIdNanoid(generarCadenaAleatoria());
     }, []);
-    useEffect(function () {
-        if (!children.length)
-            return;
-        // Calculate the total translation value based on children length and width
-        var totalTranslateX = "calc(".concat(toRight ? "" : "-").concat(width, " * ").concat(children.length, ")");
-        // Dynamically create the CSS keyframes for the animation
-        var style = document.createElement("style");
-        style.type = "text/css";
-        var keyFrames = "\n      @keyframes slider_logo_slider_".concat(idNanoid, " {\n        0% {\n          transform: translateX(0);\n        }\n        100% {\n          transform: translateX(").concat(totalTranslateX, ");\n        }\n      }");
-        style.innerHTML = keyFrames;
-        document.getElementsByTagName("head")[0].appendChild(style);
-        // Cleanup the created styles on component unmount
-        return function () {
-            document.getElementsByTagName("head")[0].removeChild(style);
-        };
-    }, [toRight, width, children, idNanoid]);
-    var handleMouseEnter = function () {
-        var sliderElement = document.getElementById("slider_".concat(idNanoid));
-        if (sliderElement)
-            sliderElement.style.animationPlayState = "paused";
+    const handleMouseLeave = useCallback(() => {
+        if (sliderRef.current) {
+            sliderRef.current.style.animationPlayState = "running";
+        }
+    }, []);
+    // Memoize the duplicated children to avoid recreating on every render
+    const duplicatedChildren = useMemo(() => {
+        const renderChildren = (keyPrefix) => children.map((child, i) => (_jsx(React.Fragment, { children: React.cloneElement(child, { width }) }, `${keyPrefix}-${i}`)));
+        // Render 3 copies for seamless infinite loop
+        return (_jsxs(_Fragment, { children: [renderChildren("a"), renderChildren("b"), renderChildren("c")] }));
+    }, [children, width]);
+    const wrapperStyle = {
+        width: "100%",
+        height: "auto",
+        margin: "auto",
+        overflow: "hidden",
+        position: "relative",
     };
-    var handleMouseLeave = function () {
-        var sliderElement = document.getElementById("slider_".concat(idNanoid));
-        if (sliderElement)
-            sliderElement.style.animationPlayState = "running";
+    const sliderStyle = {
+        display: "flex",
+        width: `calc(${width} * ${childCount * 3})`,
+        animation: `${animationName} ${duration}s linear infinite`,
     };
-    return (React.createElement("div", { style: { position: "relative" } },
-        React.createElement("div", { style: {
-                width: "100%",
-                height: "auto",
-                margin: "auto",
-                overflow: "hidden",
-                position: "relative",
-            }, onMouseEnter: function () { return pauseOnHover && handleMouseEnter(); }, onMouseLeave: function () { return pauseOnHover && handleMouseLeave(); }, id: "slider_wrapper_".concat(idNanoid) },
-            React.createElement("div", { style: {
-                    display: "flex",
-                    animation: "slider_logo_slider_".concat(idNanoid, " ").concat(duration, "s linear infinite"),
-                    width: "calc(".concat(width, " * ").concat(children.length * 3, ")"),
-                }, id: "slider_".concat(idNanoid) },
-                children.map(function (child, i) { return (React.createElement(React.Fragment, { key: i }, React.cloneElement(child, { width: width }))); }),
-                children.map(function (child, i) { return (React.createElement(React.Fragment, { key: i }, React.cloneElement(child, { width: width }))); }),
-                children.map(function (child, i) { return (React.createElement(React.Fragment, { key: i }, React.cloneElement(child, { width: width }))); }))),
-        blurBorders && (React.createElement(React.Fragment, null,
-            React.createElement("div", { style: {
-                    position: "absolute",
-                    right: 0,
-                    top: 0,
-                    width: "180px",
-                    transform: "rotate(180deg)",
-                    zIndex: 10,
-                    height: "105%",
-                    background: "linear-gradient(90deg, ".concat(blurBorderColor, " 10%, rgba(255, 255, 255, 0) 80%)"),
-                } }),
-            React.createElement("div", { style: {
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: "180px",
-                    zIndex: 10,
-                    height: "120%",
-                    background: "linear-gradient(90deg, ".concat(blurBorderColor, " 10%, rgba(255, 255, 255, 0) 80%)"),
-                } })))));
+    const blurOverlayBaseStyle = {
+        position: "absolute",
+        top: 0,
+        width: "180px",
+        height: "100%",
+        zIndex: 10,
+        pointerEvents: "none",
+    };
+    const leftBlurStyle = {
+        ...blurOverlayBaseStyle,
+        left: 0,
+        background: `linear-gradient(90deg, ${blurBorderColor} 10%, rgba(255, 255, 255, 0) 80%)`,
+    };
+    const rightBlurStyle = {
+        ...blurOverlayBaseStyle,
+        right: 0,
+        background: `linear-gradient(270deg, ${blurBorderColor} 10%, rgba(255, 255, 255, 0) 80%)`,
+    };
+    return (_jsxs("div", { style: { position: "relative" }, children: [_jsx("style", { children: keyframes }), _jsx("div", { style: wrapperStyle, onMouseEnter: pauseOnHover ? handleMouseEnter : undefined, onMouseLeave: pauseOnHover ? handleMouseLeave : undefined, children: _jsx("div", { ref: sliderRef, style: sliderStyle, children: duplicatedChildren }) }), blurBorders && (_jsxs(_Fragment, { children: [_jsx("div", { style: leftBlurStyle, "aria-hidden": "true" }), _jsx("div", { style: rightBlurStyle, "aria-hidden": "true" })] }))] }));
 };
-// Slide component definition with TypeScript
-var Slide = function (_a) {
-    var children = _a.children, _b = _a.width, width = _b === void 0 ? "200px" : _b, props = __rest(_a, ["children", "width"]);
-    return (React.createElement("div", __assign({ style: {
-            width: width,
-            alignItems: "center",
-            display: "flex",
-        } }, props), children));
+const Slide = ({ children, width = "200px", ...props }) => {
+    const slideStyle = {
+        width,
+        display: "flex",
+        alignItems: "center",
+        flexShrink: 0,
+    };
+    return (_jsx("div", { style: slideStyle, ...props, children: children }));
 };
-// Assign the Slide component to Slider.Slide
 Slider.Slide = Slide;
 export default Slider;
+export { Slider, Slide };
