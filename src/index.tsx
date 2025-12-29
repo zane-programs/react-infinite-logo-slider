@@ -54,8 +54,8 @@ const Slider: SliderComponent = ({
 
   // Calculate total width for the animation
   const childCount = children.length;
-  const totalWidth = useMemo(
-    () => `calc(${width} * ${childCount})`,
+  const negativeTotalWidth = useMemo(
+    () => `calc(${width} * ${childCount} * -1)`,
     [width, childCount]
   );
 
@@ -65,7 +65,7 @@ const Slider: SliderComponent = ({
     if (toRight) {
       return `
         @keyframes ${animationName} {
-          0% { transform: translateX(-${totalWidth}); }
+          0% { transform: translateX(${negativeTotalWidth}); }
           100% { transform: translateX(0); }
         }
       `;
@@ -73,10 +73,10 @@ const Slider: SliderComponent = ({
     return `
       @keyframes ${animationName} {
         0% { transform: translateX(0); }
-        100% { transform: translateX(-${totalWidth}); }
+        100% { transform: translateX(${negativeTotalWidth}); }
       }
     `;
-  }, [animationName, totalWidth, toRight]);
+  }, [animationName, negativeTotalWidth, toRight]);
 
   // Pause/resume handlers using ref
   const handleMouseEnter = useCallback(() => {

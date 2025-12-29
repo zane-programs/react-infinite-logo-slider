@@ -84,9 +84,9 @@ describe("Slider", () => {
 
       const styleTag = container.querySelector("style");
       expect(styleTag?.textContent).toContain("translateX(0)");
-      expect(styleTag?.textContent).toContain("translateX(-");
-      // 0% should be at 0, 100% should be negative
+      // 0% should be at 0, 100% should be negative (using calc with * -1)
       expect(styleTag?.textContent).toMatch(/0%\s*{\s*transform:\s*translateX\(0\)/);
+      expect(styleTag?.textContent).toMatch(/100%\s*{\s*transform:\s*translateX\(calc\(.+\* -1\)\)/);
     });
 
     it("animates right when toRight=true", () => {
@@ -99,8 +99,8 @@ describe("Slider", () => {
       );
 
       const styleTag = container.querySelector("style");
-      // For toRight: starts at negative (left position) and moves to 0
-      expect(styleTag?.textContent).toMatch(/0%\s*{\s*transform:\s*translateX\(-/);
+      // For toRight: starts at negative (left position using calc with * -1) and moves to 0
+      expect(styleTag?.textContent).toMatch(/0%\s*{\s*transform:\s*translateX\(calc\(.+\* -1\)\)/);
       expect(styleTag?.textContent).toMatch(/100%\s*{\s*transform:\s*translateX\(0\)/);
     });
   });

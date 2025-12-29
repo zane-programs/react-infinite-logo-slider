@@ -9,14 +9,14 @@ const Slider = ({ children: rawChildren, width = "200px", duration = 40, toRight
     const animationName = useMemo(() => `slider-animation-${uniqueId.replace(/:/g, "")}`, [uniqueId]);
     // Calculate total width for the animation
     const childCount = children.length;
-    const totalWidth = useMemo(() => `calc(${width} * ${childCount})`, [width, childCount]);
+    const negativeTotalWidth = useMemo(() => `calc(${width} * ${childCount} * -1)`, [width, childCount]);
     // For toRight: start offset left (negative) and animate to 0
     // For toLeft: start at 0 and animate to negative
     const keyframes = useMemo(() => {
         if (toRight) {
             return `
         @keyframes ${animationName} {
-          0% { transform: translateX(-${totalWidth}); }
+          0% { transform: translateX(${negativeTotalWidth}); }
           100% { transform: translateX(0); }
         }
       `;
@@ -24,10 +24,10 @@ const Slider = ({ children: rawChildren, width = "200px", duration = 40, toRight
         return `
       @keyframes ${animationName} {
         0% { transform: translateX(0); }
-        100% { transform: translateX(-${totalWidth}); }
+        100% { transform: translateX(${negativeTotalWidth}); }
       }
     `;
-    }, [animationName, totalWidth, toRight]);
+    }, [animationName, negativeTotalWidth, toRight]);
     // Pause/resume handlers using ref
     const handleMouseEnter = useCallback(() => {
         if (sliderRef.current) {
